@@ -191,6 +191,176 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
 	sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
 }
 
+static void hpm_init()
+{
+
+// TODO have those defined in a separate header? Where should that live?
+#define EVENT_REDIRECT                0x1
+#define EVENT_BRANCH                  0x3
+#define EVENT_JAL                     0x4
+#define EVENT_JALR                    0x5
+#define EVENT_TRAP                    0x2
+
+#define EVENT_LOAD_WAIT              0x10
+#define EVENT_CAP_LOAD               0x1a
+#define EVENT_CAP_STORE              0x1b
+
+#define EVENT_ITLB_MISS              0x2a
+#define EVENT_ICACHE_LOAD            0x20
+#define EVENT_ICACHE_LOAD_MISS       0x21
+#define EVENT_ICACHE_LOAD_MISS_WAIT  0x22
+
+#define EVENT_DTLB_ACCESS            0x39
+#define EVENT_DTLB_MISS              0x3a
+#define EVENT_DTLB_MISS_WAIT         0x3b
+#define EVENT_DCACHE_LOAD            0x30
+#define EVENT_DCACHE_LOAD_MISS       0x31
+#define EVENT_DCACHE_LOAD_MISS_WAIT  0x32
+#define EVENT_DCACHE_STORE           0x33
+#define EVENT_DCACHE_STORE_MISS      0x34
+
+#define EVENT_LLCACHE_FILL           0x61
+#define EVENT_LLCACHE_FILL_WAIT      0x62
+#define EVENT_LLCACHE_EVICT          0x64
+
+#define EVENT_TAGCACHE_LOAD          0x42
+#define EVENT_TAGCACHE_LOAD_MISS     0x43
+#define EVENT_TAGCACHE_STORE         0x40
+#define EVENT_TAGCACHE_STORE_MISS    0x41
+#define EVENT_TAGCACHE_EVICT         0x44
+
+// TODO have those derived from a config file? What's an appropriate mechanism?
+#define EVENT_3  EVENT_REDIRECT
+#define EVENT_4  EVENT_BRANCH
+#define EVENT_5  EVENT_JAL
+#define EVENT_6  EVENT_JALR
+#define EVENT_7  EVENT_TRAP
+#define EVENT_8  EVENT_LOAD_WAIT
+#define EVENT_9  EVENT_CAP_LOAD
+#define EVENT_10 EVENT_CAP_STORE
+#define EVENT_11 EVENT_ITLB_MISS
+#define EVENT_12 EVENT_ICACHE_LOAD
+#define EVENT_13 EVENT_ICACHE_LOAD_MISS
+#define EVENT_14 EVENT_ICACHE_LOAD_MISS_WAIT
+#define EVENT_15 EVENT_DTLB_ACCESS
+#define EVENT_16 EVENT_DTLB_MISS
+#define EVENT_17 EVENT_DTLB_MISS_WAIT
+#define EVENT_18 EVENT_DCACHE_LOAD
+#define EVENT_19 EVENT_DCACHE_LOAD_MISS
+#define EVENT_20 EVENT_DCACHE_LOAD_MISS_WAIT
+#define EVENT_21 EVENT_DCACHE_STORE
+#define EVENT_22 EVENT_DCACHE_STORE_MISS
+#define EVENT_23 EVENT_LLCACHE_FILL
+#define EVENT_24 EVENT_LLCACHE_FILL_WAIT
+#define EVENT_25 EVENT_TAGCACHE_LOAD
+#define EVENT_26 EVENT_TAGCACHE_LOAD_MISS
+#define EVENT_27 EVENT_LLCACHE_EVICT
+#define EVENT_28 EVENT_TAGCACHE_STORE_MISS
+#define EVENT_29 EVENT_TAGCACHE_EVICT
+
+  sbi_printf("Setting up HPM counters...\n");
+
+  asm volatile (// handle trap on implementations not supporting HPM CSRs
+    // inhibit all counters
+    "li t0, 0xfffffff8\n\t"
+    "csrs mcountinhibit, t0\n\t"
+    // install all events
+    "li t0, " STR(EVENT_3) "\n\t"
+    "csrw mhpmevent3, t0\n\t"
+    "li t0, " STR(EVENT_4) "\n\t"
+    "csrw mhpmevent4, t0\n\t"
+    "li t0, " STR(EVENT_5) "\n\t"
+    "csrw mhpmevent5, t0\n\t"
+    "li t0, " STR(EVENT_6) "\n\t"
+    "csrw mhpmevent6, t0\n\t"
+    "li t0, " STR(EVENT_7) "\n\t"
+    "csrw mhpmevent7, t0\n\t"
+    "li t0, " STR(EVENT_8) "\n\t"
+    "csrw mhpmevent8, t0\n\t"
+    "li t0, " STR(EVENT_9) "\n\t"
+    "csrw mhpmevent9, t0\n\t"
+    "li t0, " STR(EVENT_10) "\n\t"
+    "csrw mhpmevent10, t0\n\t"
+    "li t0, " STR(EVENT_11) "\n\t"
+    "csrw mhpmevent11, t0\n\t"
+    "li t0, " STR(EVENT_12) "\n\t"
+    "csrw mhpmevent12, t0\n\t"
+    "li t0, " STR(EVENT_13) "\n\t"
+    "csrw mhpmevent13, t0\n\t"
+    "li t0, " STR(EVENT_14) "\n\t"
+    "csrw mhpmevent14, t0\n\t"
+    "li t0, " STR(EVENT_15) "\n\t"
+    "csrw mhpmevent15, t0\n\t"
+    "li t0, " STR(EVENT_16) "\n\t"
+    "csrw mhpmevent16, t0\n\t"
+    "li t0, " STR(EVENT_17) "\n\t"
+    "csrw mhpmevent17, t0\n\t"
+    "li t0, " STR(EVENT_18) "\n\t"
+    "csrw mhpmevent18, t0\n\t"
+    "li t0, " STR(EVENT_19) "\n\t"
+    "csrw mhpmevent19, t0\n\t"
+    "li t0, " STR(EVENT_20) "\n\t"
+    "csrw mhpmevent20, t0\n\t"
+    "li t0, " STR(EVENT_21) "\n\t"
+    "csrw mhpmevent21, t0\n\t"
+    "li t0, " STR(EVENT_22) "\n\t"
+    "csrw mhpmevent22, t0\n\t"
+    "li t0, " STR(EVENT_23) "\n\t"
+    "csrw mhpmevent23, t0\n\t"
+    "li t0, " STR(EVENT_24) "\n\t"
+    "csrw mhpmevent24, t0\n\t"
+    "li t0, " STR(EVENT_25) "\n\t"
+    "csrw mhpmevent25, t0\n\t"
+    "li t0, " STR(EVENT_26) "\n\t"
+    "csrw mhpmevent26, t0\n\t"
+    "li t0, " STR(EVENT_27) "\n\t"
+    "csrw mhpmevent27, t0\n\t"
+    "li t0, " STR(EVENT_28) "\n\t"
+    "csrw mhpmevent28, t0\n\t"
+    "li t0, " STR(EVENT_29) "\n\t"
+    "csrw mhpmevent29, t0\n\t"
+    // initialize all counters to 0
+    "li t0, 0\n\t"
+    "csrw mhpmcounter3, t0\n\t"
+    "csrw mhpmcounter4, t0\n\t"
+    "csrw mhpmcounter5, t0\n\t"
+    "csrw mhpmcounter6, t0\n\t"
+    "csrw mhpmcounter7, t0\n\t"
+    "csrw mhpmcounter8, t0\n\t"
+    "csrw mhpmcounter9, t0\n\t"
+    "csrw mhpmcounter10, t0\n\t"
+    "csrw mhpmcounter11, t0\n\t"
+    "csrw mhpmcounter12, t0\n\t"
+    "csrw mhpmcounter13, t0\n\t"
+    "csrw mhpmcounter14, t0\n\t"
+    "csrw mhpmcounter15, t0\n\t"
+    "csrw mhpmcounter16, t0\n\t"
+    "csrw mhpmcounter17, t0\n\t"
+    "csrw mhpmcounter18, t0\n\t"
+    "csrw mhpmcounter19, t0\n\t"
+    "csrw mhpmcounter20, t0\n\t"
+    "csrw mhpmcounter21, t0\n\t"
+    "csrw mhpmcounter22, t0\n\t"
+    "csrw mhpmcounter23, t0\n\t"
+    "csrw mhpmcounter24, t0\n\t"
+    "csrw mhpmcounter25, t0\n\t"
+    "csrw mhpmcounter26, t0\n\t"
+    "csrw mhpmcounter27, t0\n\t"
+    "csrw mhpmcounter28, t0\n\t"
+    "csrw mhpmcounter29, t0\n\t"
+    // bitmask in t0
+    "li t0, 0xfffffff8\n\t"
+    // enable user access -- questionable practice here...
+    "csrs mcounteren, t0\n\t"
+    // un-inhibit all counters
+    "csrc mcountinhibit, t0\n\t"
+    : // no outputs
+    : // no inputs
+    : "t0"
+  );
+  sbi_printf("Done\n");
+}
+
 static unsigned long coldboot_done;
 
 static void wait_for_coldboot(struct sbi_scratch *scratch, u32 hartid)
@@ -356,6 +526,8 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 	sbi_boot_print_domains(scratch);
 
 	sbi_boot_print_hart(scratch, hartid);
+
+	hpm_init();
 
 	run_all_tests();
 
