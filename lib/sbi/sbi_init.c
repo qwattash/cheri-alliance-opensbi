@@ -191,6 +191,7 @@ static void sbi_boot_print_hart(struct sbi_scratch *scratch, u32 hartid)
 	sbi_hart_delegation_dump(scratch, "Boot HART ", "         ");
 }
 
+#ifdef PLATFORM_CHERI_TOOOBA
 static void hpm_init()
 {
 
@@ -360,6 +361,7 @@ static void hpm_init()
   );
   sbi_printf("Done\n");
 }
+#endif
 
 static unsigned long coldboot_done;
 
@@ -527,7 +529,9 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 
 	sbi_boot_print_hart(scratch, hartid);
 
+#ifdef PLATFORM_CHERI_TOOOBA
 	hpm_init();
+#endif
 
 	run_all_tests();
 
