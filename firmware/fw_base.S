@@ -66,7 +66,9 @@ _start:
 #endif
 
 #if defined(__CHERI__)
-#if defined(__riscv_zyhybrid) || defined(__riscv_zcherihybrid)
+#if defined(__riscv_zcherihybrid)
+	modesw.cap
+#elif defined(__riscv_zyhybrid)
 	ymodeswy
 #endif
 	/* Initialize the ca3 as infinite capability */
@@ -212,7 +214,7 @@ _bss_zero:
 
 	/* Setup temporary trap handler */
 	PC_PTR_L	s4, _start_hang
-	csrw	CSR_MTVEC, s4
+	csrw	CSR_MTVEC, PREG(s4)
 
 	/*
 	 * While at this point, trap handling is rudimentary, if a trap happens,
@@ -493,7 +495,7 @@ _start_warm:
 	set_cap_perm tp, tp, t0, CHERI_PERM_DATA	/* scratch is a read-write data */
 #endif
 	/* update the mscratch */
-	csrw	CSR_MSCRATCH, tp
+	csrw	CSR_MSCRATCH, PREG(tp)
 
 	/* Setup stack */
 #if defined(__CHERI__)
@@ -515,13 +517,13 @@ _start_warm:
 	beq	a5, zero, _skip_trap_handler_hyp
 	PC_PTR_L	a4, _trap_handler_hyp
 _skip_trap_handler_hyp:
-	csrw	CSR_MTVEC, a4
+	csrw	CSR_MTVEC, PREG(a4)
 
 	/* Clear MDT here again for all harts */
 	CLEAR_MDT t0
 
 	/* Initialize SBI runtime */
-	csrr	a0, CSR_MSCRATCH
+	csrr	PREG(a0), CSR_MSCRATCH
 	call	sbi_init
 
 	/* We don't expect to reach here hence just hang */
@@ -620,7 +622,7 @@ memcmp:
 
 .macro	TRAP_SAVE_AND_SETUP_SP_T0
 	/* Swap TP and MSCRATCH */
-	csrrw	tp, CSR_MSCRATCH, tp
+	csrrw	PREG(tp), CSR_MSCRATCH, PREG(tp)
 
 	/* Save T0 in scratch space */
 	REG_S	t0, SBI_SCRATCH_TMP0_OFFSET(tp)
@@ -666,12 +668,12 @@ memcmp:
 	REG_S	t0, SBI_TRAP_REGS_OFFSET(t0)(sp)
 
 	/* Swap TP and MSCRATCH */
-	csrrw	tp, CSR_MSCRATCH, tp
+	csrrw	PREG(tp), CSR_MSCRATCH, PREG(tp)
 .endm
 
 .macro	TRAP_SAVE_MEPC_MSTATUS have_mstatush
 	/* Save MEPC and MSTATUS CSRs */
-	csrr	t0, CSR_MEPC
+	csrr	PREG(t0), CSR_MEPC
 	PREG_S	t0, SBI_TRAP_REGS_OFFSET(mepc)(sp)
 	csrr	t0, CSR_MSTATUS
 	REG_S	t0, SBI_TRAP_REGS_OFFSET(mstatus)(sp)
@@ -802,7 +804,7 @@ memcmp:
 	REG_L	t0, SBI_TRAP_REGS_OFFSET(mstatus)(a0)
 	csrw	CSR_MSTATUS, t0
 	PREG_L	t0, SBI_TRAP_REGS_OFFSET(mepc)(a0)
-	csrw	CSR_MEPC, t0
+	csrw	CSR_MEPC, PREG(t0)
 .endm
 
 .macro TRAP_RESTORE_A0_T0

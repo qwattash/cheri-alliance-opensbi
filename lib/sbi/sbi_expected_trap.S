@@ -33,9 +33,9 @@ __sbi_expected_trap:
 	XREG_S	zero, SBI_TRAP_INFO_OFFSET(tval2)(a3)
 	XREG_S	zero, SBI_TRAP_INFO_OFFSET(tinst)(a3)
 	XREG_S	zero, SBI_TRAP_INFO_OFFSET(gva)(a3)
-	csrr	a4, CSR_MEPC
+	csrr	PREG(a4), CSR_MEPC
 	PREG_ADDI	a4, a4, 4
-	csrw	CSR_MEPC, a4
+	csrw	CSR_MEPC, PREG(a4)
 	mret
 	.size __sbi_expected_trap, . - __sbi_expected_trap
 
@@ -66,8 +66,8 @@ __sbi_expected_trap_hext:
 	andi	a4, a4, 1
 	XREG_S	a4, SBI_TRAP_INFO_OFFSET(gva)(a3)
 
-	csrr	a4, CSR_MEPC
+	csrr	PREG(a4), CSR_MEPC
 	PREG_ADDI	a4, a4, 4
-	csrw	CSR_MEPC, a4
+	csrw	CSR_MEPC, PREG(a4)
 	mret
 	.size __sbi_expected_trap_hext, . - __sbi_expected_trap_hext

@@ -17,6 +17,16 @@
 #ifdef __ASSEMBLER__
 #define __ASM_STR(x)	x
 
+#if defined(__riscv_zcheripurecap)
+#if defined(__CHERI__)
+#define	PREG(r)		c ## r
+#else
+#define	PREG(r)		r
+#endif
+#else
+#define	PREG(r)		r
+#endif
+
 #else /* !__ASSEMBLER__ */
 #define __ASM_STR(x)	#x
 

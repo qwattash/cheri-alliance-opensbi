@@ -28,7 +28,9 @@
 _start:
 #if defined(__CHERI__)
 	/* Run test in capability pointer mode */
-#if defined(__riscv_zyhybrid) || defined(__riscv_zcherihybrid)
+#if defined(__riscv_zcherihybrid)
+	modesw.cap
+#elif defined(__riscv_zyhybrid)
 	ymodeswy
 #endif
 	/* Save infinite capability */
@@ -151,7 +153,7 @@ _start_warm:
 
 	/* Setup exception vectors */
 	PTR_L	a3, _start_hang
-	csrw	CSR_STVEC, a3
+	csrw	CSR_STVEC, PREG(a3)
 
 	/* Setup stack */
 	PC_PTR_L	a3, _payload_end
